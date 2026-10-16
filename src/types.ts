@@ -1,0 +1,56 @@
+export type Difficulty = 'Easy' | 'Medium' | 'Hard';
+
+export type SupportedLanguage = 'python' | 'javascript' | 'cpp' | 'java';
+
+export interface TestCase {
+  id: number;
+  input: string;
+  expectedOutput: string;
+}
+
+export interface Problem {
+  id: string;
+  title: string;
+  difficulty: Difficulty;
+  category: string;
+  description: string;
+  examples: {
+    input: string;
+    output: string;
+    explanation?: string;
+  }[];
+  constraints: string[];
+  starterCode: Record<SupportedLanguage, string>;
+  testCases: TestCase[];
+}
+
+export interface TestCaseResult {
+  testCaseId: number;
+  input: string;
+  expected: string;
+  actual: string;
+  passed: boolean;
+  error?: string;
+}
+
+export interface ExecutionResult {
+  status: 'Accepted' | 'Wrong Answer' | 'Runtime Error' | 'Compile Error' | 'Time Limit Exceeded';
+  testCaseResults: TestCaseResult[];
+  executionTimeMs?: number;
+  rawOutput?: string;
+  errorDetails?: string;
+}
+
+export interface LanguageOption {
+  id: SupportedLanguage;
+  name: string;
+  monacoLang: string;
+  version: string;
+}
+
+export const LANGUAGE_OPTIONS: LanguageOption[] = [
+  { id: 'python', name: 'Python 3 (CPython 3.10)', monacoLang: 'python', version: '3.10' },
+  { id: 'javascript', name: 'JavaScript (Node.js 20)', monacoLang: 'javascript', version: '20.x' },
+  { id: 'cpp', name: 'C++ (GCC 13.2)', monacoLang: 'cpp', version: '13.2' },
+  { id: 'java', name: 'Java (OpenJDK 21)', monacoLang: 'java', version: '21' },
+];
