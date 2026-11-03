@@ -2,6 +2,17 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
 export type SupportedLanguage = 'python' | 'javascript' | 'cpp' | 'java';
 
+export type UserRole = 'student' | 'admin';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatar?: string;
+  joinedDate?: string;
+}
+
 export interface TestCase {
   id: number;
   input: string;
@@ -14,6 +25,7 @@ export interface Problem {
   difficulty: Difficulty;
   category: string;
   description: string;
+  acceptanceRate?: string;
   examples: {
     input: string;
     output: string;
@@ -39,6 +51,19 @@ export interface ExecutionResult {
   executionTimeMs?: number;
   rawOutput?: string;
   errorDetails?: string;
+}
+
+export interface SubmissionRecord {
+  id: string;
+  problemId: string;
+  problemTitle: string;
+  language: SupportedLanguage;
+  status: 'Accepted' | 'Wrong Answer' | 'Runtime Error' | 'Compile Error';
+  runtimeMs: number;
+  testCasesPassed: number;
+  totalTestCases: number;
+  timestamp: string;
+  code: string;
 }
 
 export interface LanguageOption {

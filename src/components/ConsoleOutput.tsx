@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Problem, ExecutionResult } from '../types';
-import { Play, Loader2, CheckCircle2, XCircle, AlertTriangle, Terminal, Check, Clock } from 'lucide-react';
+import { Play, Loader2, CheckCircle2, XCircle, AlertTriangle, Terminal, Check, Clock, Send } from 'lucide-react';
 
 interface ConsoleOutputProps {
   problem: Problem;
   result: ExecutionResult | null;
   isRunning: boolean;
   onRunCode: () => void;
+  onSubmitCode?: () => void;
   customInput: string;
   setCustomInput: (val: string) => void;
 }
@@ -16,6 +17,7 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
   result,
   isRunning,
   onRunCode,
+  onSubmitCode,
   customInput,
   setCustomInput,
 }) => {
@@ -70,24 +72,39 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
           </button>
         </div>
 
-        {/* Action Run Button */}
-        <button
-          onClick={onRunCode}
-          disabled={isRunning}
-          className="flex items-center space-x-1.5 px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-md shadow-sm transition-all"
-        >
-          {isRunning ? (
-            <>
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Running...</span>
-            </>
-          ) : (
-            <>
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Run Code</span>
-            </>
+        {/* Action Run & Submit Buttons */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onRunCode}
+            disabled={isRunning}
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#2a2a32] hover:bg-[#34343f] border border-[#3e3e4c] disabled:opacity-50 text-gray-200 font-semibold text-xs rounded-md shadow-sm transition-all"
+            title="Run solution against sample testcases"
+          >
+            {isRunning ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Running...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 fill-current text-emerald-400" />
+                <span>Run</span>
+              </>
+            )}
+          </button>
+
+          {onSubmitCode && (
+            <button
+              onClick={onSubmitCode}
+              disabled={isRunning}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-semibold text-xs rounded-md shadow-sm transition-all"
+              title="Submit solution for assessment record"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Submit</span>
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       {/* Tab Panels Body */}

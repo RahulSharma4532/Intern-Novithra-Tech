@@ -1,120 +1,75 @@
-import React, { useState } from 'react';
-import { PROBLEMS } from './data/problems';
-import { Problem, SupportedLanguage, ExecutionResult } from './types';
-import { Navbar } from './components/Navbar';
-import { ProblemDescription } from './components/ProblemDescription';
-import { CodeEditor } from './components/CodeEditor';
-import { ConsoleOutput } from './components/ConsoleOutput';
-import { executeCode } from './services/codeRunner';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AppShell } from './components/AppShell';
+import { AuthScreen } from './pages/AuthScreen';
+import { DashboardPage } from './pages/DashboardPage';
+import { ProblemsPage } from './pages/ProblemsPage';
+import { ProblemWorkspace } from './pages/ProblemWorkspace';
+import { HistoryPage } from './pages/HistoryPage';
+import { AdminPage } from './pages/AdminPage';
+
+// Protected Route helper
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({
+  children,
+  requireAdmin = false,
+}) => {
+  const { isAuthenticated, isAdmin } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export const AppContent: React.FC = () => {
+  return (
+    <Routes>
+      {/* Public Auth Routes */}
+      <Route path="/login" element={<AuthScreen mode="login" />} />
+      <Route path="/register" element={<AuthScreen mode="register" />} />
+      <Route path="/admin/login" element={<AuthScreen mode="admin-login" />} />
+
+      {/* Protected App Shell Layout */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <AppShell />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="problems" element={<ProblemsPage />} />
+        <Route path="problems/:id" element={<ProblemWorkspace />} />
+        <Route path="submissions" element={<HistoryPage />} />
+        <Route
+          path="admin"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  );
+};
 
 export const App: React.FC = () => {
-  const [problems] = useState<Problem[]>(PROBLEMS);
-  const [currentProblem, setCurrentProblem] = useState<Problem>(PROBLEMS[0]);
-  const [language, setLanguage] = useState<SupportedLanguage>('python');
-  
-  // Store code cache: key is `${problem.id}_${language}`
-  const [codeCache, setCodeCache] = useState<Record<string, string>>({});
-  
-  const [result, setResult] = useState<ExecutionResult | null>(null);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [customInput, setCustomInput] = useState<string>('');
-
-  // Get current active code
-  const cacheKey = `${currentProblem.id}_${language}`;
-  const activeCode = codeCache[cacheKey] ?? currentProblem.starterCode[language];
-
-  // Handler for code changes in editor
-  const handleCodeChange = (newCode: string | undefined) => {
-    setCodeCache((prev) => ({
-      ...prev,
-      [cacheKey]: newCode ?? '',
-    }));
-  };
-
-  // Handler for problem change
-  const handleSelectProblem = (problem: Problem) => {
-    setCurrentProblem(problem);
-    setResult(null);
-    setCustomInput('');
-  };
-
-  // Handler for language change
-  const handleLanguageChange = (newLang: SupportedLanguage) => {
-    setLanguage(newLang);
-    setResult(null);
-  };
-
-  // Handler for resetting code to starter boilerplate
-  const handleResetCode = () => {
-    setCodeCache((prev) => ({
-      ...prev,
-      [cacheKey]: currentProblem.starterCode[language],
-    }));
-    setResult(null);
-  };
-
-  // Run code against tests or custom input
-  const handleRunCode = async () => {
-    setIsRunning(true);
-    setResult(null);
-
-    try {
-      const res = await executeCode(currentProblem, language, activeCode, customInput);
-      setResult(res);
-    } catch (err: any) {
-      setResult({
-        status: 'Runtime Error',
-        testCaseResults: [],
-        errorDetails: err?.message || 'Unexpected execution failure.',
-      });
-    } finally {
-      setIsRunning(false);
-    }
-  };
-
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#121212] overflow-hidden text-gray-200">
-      {/* Top Navigation */}
-      <Navbar
-        problems={problems}
-        currentProblem={currentProblem}
-        onSelectProblem={handleSelectProblem}
-        onResetCode={handleResetCode}
-      />
-
-      {/* Main Split-Screen Workspace */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
-        {/* Left Pane: Problem Description (5 cols on lg) */}
-        <section className="lg:col-span-5 h-[40vh] lg:h-full overflow-hidden">
-          <ProblemDescription problem={currentProblem} />
-        </section>
-
-        {/* Right Pane: Editor & Test Console (7 cols on lg) */}
-        <section className="lg:col-span-7 h-[60vh] lg:h-full flex flex-col overflow-hidden bg-[#1e1e1e]">
-          {/* Top Half: Code Editor */}
-          <div className="h-[60%] w-full overflow-hidden">
-            <CodeEditor
-              language={language}
-              code={activeCode}
-              onChange={handleCodeChange}
-              onLanguageChange={handleLanguageChange}
-            />
-          </div>
-
-          {/* Bottom Half: Console / Output Tabs */}
-          <div className="h-[40%] w-full overflow-hidden">
-            <ConsoleOutput
-              problem={currentProblem}
-              result={result}
-              isRunning={isRunning}
-              onRunCode={handleRunCode}
-              customInput={customInput}
-              setCustomInput={setCustomInput}
-            />
-          </div>
-        </section>
-      </main>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 
