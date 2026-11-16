@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PROBLEMS } from '../data/problems';
-import { Difficulty } from '../types';
-import { Search, Code2, ArrowRight, Tag, CheckCircle2 } from 'lucide-react';
-import { getStoredSubmissions } from '../services/storage';
+import { getStoredProblems, getStoredSubmissions, deleteProblem } from '../services/storage';
+import { Difficulty, Problem } from '../types';
+import { Search, Code2, ArrowRight, Tag, CheckCircle2, Sparkles, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const ProblemsPage: React.FC = () => {
+  const { isAdmin } = useAuth();
+  const [problems, setProblems] = useState<Problem[]>(getStoredProblems());
   const [search, setSearch] = useState('');
   const [selectedDiff, setSelectedDiff] = useState<string>('All');
   const submissions = getStoredSubmissions();
@@ -14,13 +16,21 @@ export const ProblemsPage: React.FC = () => {
     submissions.filter((s) => s.status === 'Accepted').map((s) => s.problemId)
   );
 
-  const filteredProblems = PROBLEMS.filter((p) => {
+  const filteredProblems = problems.filter((p) => {
     const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase());
     const matchesDiff = selectedDiff === 'All' || p.difficulty === selectedDiff;
     return matchesSearch && matchesDiff;
   });
+
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Delete this custom question?')) {
+      deleteProblem(id);
+      setProblems(getStoredProblems());
+    }
+  };
 
   const difficultyColors: Record<Difficulty, { text: string; bg: string; border: string }> = {
     Easy: { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
@@ -92,6 +102,7 @@ export const ProblemsPage: React.FC = () => {
                 filteredProblems.map((problem) => {
                   const isSolved = solvedIds.has(problem.id);
                   const diff = difficultyColors[problem.difficulty];
+                  const isCustom = Boolean(problem.createdBy);
 
                   return (
                     <tr
@@ -109,9 +120,16 @@ export const ProblemsPage: React.FC = () => {
                         )}
                       </td>
                       <td className="py-4 px-6 font-semibold text-white group-hover:text-amber-400 transition-colors">
-                        <Link to={`/problems/${problem.id}`} className="hover:underline">
-                          {problem.title}
-                        </Link>
+                        <div className="flex items-center space-x-2">
+                          <Link to={`/problems/${problem.id}`} className="hover:underline">
+                            {problem.title}
+                          </Link>
+                          {isCustom && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                              Staff
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-6 text-gray-400">
                         <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md bg-[#1e1e26] border border-[#2c2c36] text-[11px]">
@@ -127,14 +145,25 @@ export const ProblemsPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-4 px-6 text-right">
-                        <Link
-                          to={`/problems/${problem.id}`}
-                          className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#23232c] hover:bg-amber-500 hover:text-black text-gray-200 text-xs font-semibold border border-[#30303c] transition-all"
-                        >
-                          <Code2 className="w-3.5 h-3.5" />
-                          <span>Solve</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </Link>
+                        <div className="flex items-center justify-end space-x-2">
+                          <Link
+                            to={`/problems/${problem.id}`}
+                            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#23232c] hover:bg-amber-500 hover:text-black text-gray-200 text-xs font-semibold border border-[#30303c] transition-all"
+                          >
+                            <Code2 className="w-3.5 h-3.5" />
+                            <span>Solve</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                          {isAdmin && isCustom && (
+                            <button
+                              onClick={(e) => handleDelete(problem.id, e)}
+                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 transition-all"
+                              title="Delete Question"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

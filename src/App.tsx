@@ -8,6 +8,7 @@ import { ProblemsPage } from './pages/ProblemsPage';
 import { ProblemWorkspace } from './pages/ProblemWorkspace';
 import { HistoryPage } from './pages/HistoryPage';
 import { AdminPage } from './pages/AdminPage';
+import { LeaderboardPage } from './pages/LeaderboardPage';
 
 // Protected Route helper
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({
@@ -48,6 +49,7 @@ export const AppContent: React.FC = () => {
         <Route index element={<DashboardPage />} />
         <Route path="problems" element={<ProblemsPage />} />
         <Route path="problems/:id" element={<ProblemWorkspace />} />
+        <Route path="leaderboard" element={<LeaderboardPage />} />
         <Route path="submissions" element={<HistoryPage />} />
         <Route
           path="admin"

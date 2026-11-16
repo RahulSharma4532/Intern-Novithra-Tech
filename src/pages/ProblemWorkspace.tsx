@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { PROBLEMS } from '../data/problems';
 import { Problem, SupportedLanguage, ExecutionResult } from '../types';
 import { ProblemDescription } from '../components/ProblemDescription';
 import { CodeEditor } from '../components/CodeEditor';
 import { ConsoleOutput } from '../components/ConsoleOutput';
 import { executeCode } from '../services/codeRunner';
-import { saveSubmission } from '../services/storage';
+import { getStoredProblems, saveSubmission } from '../services/storage';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -20,9 +19,10 @@ export const ProblemWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  const problems = getStoredProblems();
   // Find active problem or default to first
-  const currentProblem = PROBLEMS.find((p) => p.id === id) || PROBLEMS[0];
-  const currentIndex = PROBLEMS.findIndex((p) => p.id === currentProblem.id);
+  const currentProblem = problems.find((p) => p.id === id) || problems[0];
+  const currentIndex = problems.findIndex((p) => p.id === currentProblem?.id);
 
   const [language, setLanguage] = useState<SupportedLanguage>('python');
   const [codeCache, setCodeCache] = useState<Record<string, string>>({});
@@ -31,8 +31,8 @@ export const ProblemWorkspace: React.FC = () => {
   const [customInput, setCustomInput] = useState<string>('');
   const [submitToast, setSubmitToast] = useState<string | null>(null);
 
-  const cacheKey = `${currentProblem.id}_${language}`;
-  const activeCode = codeCache[cacheKey] ?? currentProblem.starterCode[language];
+  const cacheKey = `${currentProblem?.id ?? 'p0'}_${language}`;
+  const activeCode = codeCache[cacheKey] ?? currentProblem?.starterCode[language] ?? '';
 
   const handleCodeChange = (newCode: string | undefined) => {
     setCodeCache((prev) => ({
@@ -44,21 +44,21 @@ export const ProblemWorkspace: React.FC = () => {
   const handleResetCode = () => {
     setCodeCache((prev) => ({
       ...prev,
-      [cacheKey]: currentProblem.starterCode[language],
+      [cacheKey]: currentProblem?.starterCode[language] ?? '',
     }));
     setResult(null);
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      navigate(`/problems/${PROBLEMS[currentIndex - 1].id}`);
+      navigate(`/problems/${problems[currentIndex - 1].id}`);
       setResult(null);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < PROBLEMS.length - 1) {
-      navigate(`/problems/${PROBLEMS[currentIndex + 1].id}`);
+    if (currentIndex < problems.length - 1) {
+      navigate(`/problems/${problems[currentIndex + 1].id}`);
       setResult(null);
     }
   };
@@ -138,7 +138,7 @@ export const ProblemWorkspace: React.FC = () => {
               }}
               className="bg-[#202028] text-white text-xs font-semibold rounded-lg px-2.5 py-1 border border-[#31313d] hover:border-[#454555] focus:outline-none focus:border-amber-500 cursor-pointer"
             >
-              {PROBLEMS.map((p) => (
+              {problems.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.title}
                 </option>
@@ -147,7 +147,7 @@ export const ProblemWorkspace: React.FC = () => {
 
             <button
               onClick={handleNext}
-              disabled={currentIndex === PROBLEMS.length - 1}
+              disabled={currentIndex === problems.length - 1}
               className="p-1 rounded hover:bg-[#252530] disabled:opacity-30 text-gray-400 hover:text-white transition-colors"
               title="Next Problem"
             >

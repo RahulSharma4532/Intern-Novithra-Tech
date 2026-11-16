@@ -7,6 +7,7 @@ import {
   BookOpen,
   History,
   ShieldCheck,
+  Trophy,
   LogOut,
   Menu,
   X,
@@ -26,6 +27,7 @@ export const AppShell: React.FC = () => {
     if (location.pathname.startsWith('/problems/')) return 'Problem Workspace';
     if (location.pathname.startsWith('/problems')) return 'Problem Library';
     if (location.pathname.startsWith('/submissions')) return 'Submissions History';
+    if (location.pathname.startsWith('/leaderboard')) return 'Candidate Leaderboard';
     if (location.pathname.startsWith('/admin')) return 'Admin Portal';
     return 'Student Dashboard';
   };
@@ -98,6 +100,12 @@ export const AppShell: React.FC = () => {
                     onClick={() => setMobileOpen(false)}
                   />
                   <SidebarLink
+                    to="/leaderboard"
+                    icon={<Trophy className="w-4 h-4" />}
+                    label="Leaderboard"
+                    onClick={() => setMobileOpen(false)}
+                  />
+                  <SidebarLink
                     to="/submissions"
                     icon={<History className="w-4 h-4" />}
                     label="All Submissions"
@@ -116,6 +124,12 @@ export const AppShell: React.FC = () => {
                     to="/problems"
                     icon={<BookOpen className="w-4 h-4" />}
                     label="Problem Library"
+                    onClick={() => setMobileOpen(false)}
+                  />
+                  <SidebarLink
+                    to="/leaderboard"
+                    icon={<Trophy className="w-4 h-4" />}
+                    label="Leaderboard"
                     onClick={() => setMobileOpen(false)}
                   />
                   <SidebarLink

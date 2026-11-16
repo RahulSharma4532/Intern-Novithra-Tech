@@ -26,6 +26,8 @@ export interface Problem {
   category: string;
   description: string;
   acceptanceRate?: string;
+  createdBy?: string;
+  createdAt?: string;
   examples: {
     input: string;
     output: string;
@@ -34,6 +36,19 @@ export interface Problem {
   constraints: string[];
   starterCode: Record<SupportedLanguage, string>;
   testCases: TestCase[];
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  name: string;
+  avatar?: string;
+  role: UserRole;
+  points: number;
+  problemsSolved: number;
+  accuracy: number;
+  streak: number;
+  isCurrentUser?: boolean;
 }
 
 export interface TestCaseResult {
